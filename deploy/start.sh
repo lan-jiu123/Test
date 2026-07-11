@@ -152,16 +152,16 @@ log_info "安装项目依赖..."
 
 if [ "$ARCH" = "loongarch64" ] || [ -f /etc/kylin-release ]; then
     log_info "检测到 LoongArch/银河麒麟，使用龙芯镜像源..."
-    pip install --no-cache-dir -r requirements.txt \
+    pip install --no-cache-dir -r backend/requirements.txt \
         -i https://pypi.loongnix.cn/loongnix/pypi/simple \
         --trusted-host pypi.loongnix.cn >> "$INSTALL_LOG" 2>&1 || \
-    pip install --no-cache-dir -r requirements.txt \
+    pip install --no-cache-dir -r backend/requirements.txt \
         -i https://pypi.tuna.tsinghua.edu.cn/simple >> "$INSTALL_LOG" 2>&1 || \
-    pip install --no-cache-dir -r requirements.txt --use-pep517 >> "$INSTALL_LOG" 2>&1
+    pip install --no-cache-dir -r backend/requirements.txt --use-pep517 >> "$INSTALL_LOG" 2>&1
 else
-    pip install --no-cache-dir -r requirements.txt \
+    pip install --no-cache-dir -r backend/requirements.txt \
         -i https://pypi.tuna.tsinghua.edu.cn/simple >> "$INSTALL_LOG" 2>&1 || \
-    pip install --no-cache-dir -r requirements.txt >> "$INSTALL_LOG" 2>&1
+    pip install --no-cache-dir -r backend/requirements.txt >> "$INSTALL_LOG" 2>&1
 fi
 
 log_ok "Python 依赖安装完成"
@@ -244,7 +244,7 @@ After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=$PROJECT_DIR/deploy/backend
+WorkingDirectory=$PROJECT_DIR/backend
 Environment="PATH=$PROJECT_DIR/venv/bin"
 ExecStart=$PROJECT_DIR/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
 Restart=always
@@ -265,7 +265,7 @@ echo ""
 
 # ---- 启动服务 ----
 log_info "启动服务..."
-cd "$PROJECT_DIR/deploy/backend"
+cd "$PROJECT_DIR/backend"
 
 uvicorn app.main:app --host 0.0.0.0 --port 8000 2>&1 | tee ../data/logs/api.log &
 API_PID=$!

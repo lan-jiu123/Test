@@ -54,7 +54,7 @@ def _build_llm_ctx():
     else:
         base_url = os.getenv("LONGCAT_API_URL", "https://api.longcat.chat/openai/v1")
         api_key = os.getenv("LONGCAT_API_KEY", "")
-        model = os.getenv("LONGCAT_MODEL", "longcat-2.0")
+        model = os.getenv("LONGCAT_MODEL", "LongCat-2.0")
     temperature = float(os.getenv("LLM_TEMPERATURE", "0.3"))
     return base_url, api_key, model, temperature
 

@@ -20,6 +20,18 @@ _LOCK = threading.Lock()
 _INSTANCE: Optional["LLMService"] = None
 
 
+class LLMServiceError(RuntimeError):
+    """模型服务基础异常。"""
+
+
+class LLMQuotaError(LLMServiceError):
+    """模型账户额度不足。"""
+
+
+class LLMConfigError(LLMServiceError):
+    """模型名称、地址或鉴权配置错误。"""
+
+
 class LLMService:
     def __init__(self) -> None:
         self.backend = (settings.LLM_BACKEND or "longcat").lower()
@@ -37,7 +49,7 @@ class LLMService:
                 base = base + "/v1"
             self.base_url = base
             self.api_key = settings.LONGCAT_API_KEY or ""
-            self.model = settings.LONGCAT_MODEL or "longcat-2.0"
+            self.model = settings.LONGCAT_MODEL or "LongCat-2.0"
 
         # SDK 通道初始化
         self._sdk_client = None
@@ -76,6 +88,13 @@ class LLMService:
                 )
                 return resp.choices[0].message.content, "sdk"
             except Exception as sdk_err:
+                status_code = getattr(sdk_err, "status_code", None)
+                if status_code == 402:
+                    raise LLMQuotaError("LongCat Token 额度不足") from sdk_err
+                if status_code in (400, 401, 403, 404):
+                    raise LLMConfigError(
+                        f"模型服务配置或鉴权失败（HTTP {status_code}）"
+                    ) from sdk_err
                 # SDK 失败 -> 自动退到 requests（避免单点故障）
                 try:
                     return self._chat_via_requests(system_prompt, user_prompt), f"requests(sdk-fallback:{type(sdk_err).__name__})"
@@ -117,7 +136,13 @@ class LLMService:
         resp = requests.post(url, json=payload, headers=headers, timeout=self.timeout)
         if resp.status_code != 200:
             snippet = resp.text[:800].replace("\n", " ")
-            raise RuntimeError(f"LLM HTTP {resp.status_code}: {snippet}")
+            if resp.status_code == 402:
+                raise LLMQuotaError("LongCat Token 额度不足")
+            if resp.status_code in (400, 401, 403, 404):
+                raise LLMConfigError(
+                    f"模型服务配置或鉴权失败（HTTP {resp.status_code}）"
+                )
+            raise LLMServiceError(f"LLM HTTP {resp.status_code}: {snippet}")
         data = resp.json()
         try:
             return data["choices"][0]["message"]["content"]

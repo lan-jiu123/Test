@@ -1,0 +1,857 @@
+{
+  "generated_at": "2026-07-11T09:15:38+00:00",
+  "document_id": "f213e5532ab54ed387dddb0250713ce1",
+  "document_title": "摩托车发动机维修手册",
+  "index": {
+    "document_id": "f213e5532ab54ed387dddb0250713ce1",
+    "status": "ready",
+    "embedding_backend": "local_hash",
+    "embedding_model": "local-char-ngram-v1",
+    "dimension": 384,
+    "indexed_chunk_count": 64
+  },
+  "question_count": 26,
+  "metrics": {
+    "hit_at_1": 0.9230769230769231,
+    "hit_at_3": 1.0,
+    "hit_at_5": 1.0
+  },
+  "details": [
+    {
+      "id": "Q001",
+      "question": "火花塞电极间隙的标准范围是多少？",
+      "expected_pages": [
+        3
+      ],
+      "retrieved_pages": [
+        [
+          3,
+          3
+        ],
+        [
+          3,
+          3
+        ],
+        [
+          15,
+          15
+        ],
+        [
+          14,
+          15
+        ],
+        [
+          40,
+          41
+        ]
+      ],
+      "hit_at_1": true,
+      "hit_at_3": true,
+      "hit_at_5": true
+    },
+    {
+      "id": "Q002",
+      "question": "安装火花塞时应如何预紧，规定扭矩是多少？",
+      "expected_pages": [
+        3
+      ],
+      "retrieved_pages": [
+        [
+          3,
+          3
+        ],
+        [
+          3,
+          3
+        ],
+        [
+          3,
+          3
+        ],
+        [
+          20,
+          21
+        ],
+        [
+          37,
+          38
+        ]
+      ],
+      "hit_at_1": true,
+      "hit_at_3": true,
+      "hit_at_5": true
+    },
+    {
+      "id": "Q003",
+      "question": "测量发动机压缩压力前需要做哪些准备？",
+      "expected_pages": [
+        3
+      ],
+      "retrieved_pages": [
+        [
+          3,
+          3
+        ],
+        [
+          6,
+          8
+        ],
+        [
+          8,
+          8
+        ],
+        [
+          14,
+          15
+        ],
+        [
+          5,
+          6
+        ]
+      ],
+      "hit_at_1": true,
+      "hit_at_3": true,
+      "hit_at_5": true
+    },
+    {
+      "id": "Q004",
+      "question": "1500转和540转时的标准压缩压力分别是多少？",
+      "expected_pages": [
+        3
+      ],
+      "retrieved_pages": [
+        [
+          3,
+          3
+        ],
+        [
+          40,
+          41
+        ],
+        [
+          3,
+          3
+        ],
+        [
+          12,
+          12
+        ],
+        [
+          12,
+          13
+        ]
+      ],
+      "hit_at_1": true,
+      "hit_at_3": true,
+      "hit_at_5": true
+    },
+    {
+      "id": "Q005",
+      "question": "压缩压力低于标准值时，怎样区分活塞环问题和其他密封问题？",
+      "expected_pages": [
+        3
+      ],
+      "retrieved_pages": [
+        [
+          3,
+          3
+        ],
+        [
+          21,
+          22
+        ],
+        [
+          20,
+          21
+        ],
+        [
+          21,
+          21
+        ],
+        [
+          19,
+          19
+        ]
+      ],
+      "hit_at_1": true,
+      "hit_at_3": true,
+      "hit_at_5": true
+    },
+    {
+      "id": "Q006",
+      "question": "起动电机轴转动不灵活应该如何处理？",
+      "expected_pages": [
+        5
+      ],
+      "retrieved_pages": [
+        [
+          5,
+          5
+        ],
+        [
+          40,
+          41
+        ],
+        [
+          4,
+          4
+        ],
+        [
+          37,
+          38
+        ],
+        [
+          4,
+          4
+        ]
+      ],
+      "hit_at_1": true,
+      "hit_at_3": true,
+      "hit_at_5": true
+    },
+    {
+      "id": "Q007",
+      "question": "拆卸凸轮轴时，正时标记应该怎样对齐？",
+      "expected_pages": [
+        11
+      ],
+      "retrieved_pages": [
+        [
+          11,
+          12
+        ],
+        [
+          12,
+          12
+        ],
+        [
+          12,
+          12
+        ],
+        [
+          29,
+          29
+        ],
+        [
+          15,
+          15
+        ]
+      ],
+      "hit_at_1": true,
+      "hit_at_3": true,
+      "hit_at_5": true
+    },
+    {
+      "id": "Q008",
+      "question": "检查凸轮轴时发现轴颈或凸轮表面磨损、腐蚀、划伤，应如何处理？",
+      "expected_pages": [
+        12
+      ],
+      "retrieved_pages": [
+        [
+          12,
+          12
+        ],
+        [
+          12,
+          12
+        ],
+        [
+          36,
+          37
+        ],
+        [
+          29,
+          29
+        ],
+        [
+          11,
+          12
+        ]
+      ],
+      "hit_at_1": true,
+      "hit_at_3": true,
+      "hit_at_5": true
+    },
+    {
+      "id": "Q009",
+      "question": "安装进气和排气凸轮轴的先后顺序是什么？",
+      "expected_pages": [
+        12
+      ],
+      "retrieved_pages": [
+        [
+          12,
+          12
+        ],
+        [
+          12,
+          12
+        ],
+        [
+          11,
+          12
+        ],
+        [
+          10,
+          11
+        ],
+        [
+          8,
+          8
+        ]
+      ],
+      "hit_at_1": true,
+      "hit_at_3": true,
+      "hit_at_5": true
+    },
+    {
+      "id": "Q010",
+      "question": "涨紧器安装完成后如何验证正时对齐？",
+      "expected_pages": [
+        13
+      ],
+      "retrieved_pages": [
+        [
+          12,
+          13
+        ],
+        [
+          5,
+          5
+        ],
+        [
+          37,
+          38
+        ],
+        [
+          11,
+          12
+        ],
+        [
+          26,
+          27
+        ]
+      ],
+      "hit_at_1": true,
+      "hit_at_3": true,
+      "hit_at_5": true
+    },
+    {
+      "id": "Q011",
+      "question": "进气门和排气门的标准间隙分别是多少？",
+      "expected_pages": [
+        14,
+        15
+      ],
+      "retrieved_pages": [
+        [
+          16,
+          16
+        ],
+        [
+          14,
+          15
+        ],
+        [
+          16,
+          17
+        ],
+        [
+          15,
+          15
+        ],
+        [
+          10,
+          11
+        ]
+      ],
+      "hit_at_1": false,
+      "hit_at_3": true,
+      "hit_at_5": true
+    },
+    {
+      "id": "Q012",
+      "question": "调整气门间隙时为什么不能混用挺柱和垫片？",
+      "expected_pages": [
+        15
+      ],
+      "retrieved_pages": [
+        [
+          15,
+          15
+        ],
+        [
+          16,
+          17
+        ],
+        [
+          16,
+          16
+        ],
+        [
+          14,
+          15
+        ],
+        [
+          10,
+          11
+        ]
+      ],
+      "hit_at_1": true,
+      "hit_at_3": true,
+      "hit_at_5": true
+    },
+    {
+      "id": "Q013",
+      "question": "安装气缸头时M10螺母应按什么顺序和扭矩拧紧？",
+      "expected_pages": [
+        15
+      ],
+      "retrieved_pages": [
+        [
+          15,
+          15
+        ],
+        [
+          13,
+          14
+        ],
+        [
+          15,
+          15
+        ],
+        [
+          12,
+          13
+        ],
+        [
+          8,
+          8
+        ]
+      ],
+      "hit_at_1": true,
+      "hit_at_3": true,
+      "hit_at_5": true
+    },
+    {
+      "id": "Q014",
+      "question": "拆装四组气门时怎样避免混装？",
+      "expected_pages": [
+        16,
+        17
+      ],
+      "retrieved_pages": [
+        [
+          10,
+          11
+        ],
+        [
+          16,
+          16
+        ],
+        [
+          16,
+          17
+        ],
+        [
+          20,
+          21
+        ],
+        [
+          12,
+          12
+        ]
+      ],
+      "hit_at_1": false,
+      "hit_at_3": true,
+      "hit_at_5": true
+    },
+    {
+      "id": "Q015",
+      "question": "气缸内壁有明显刮痕、活塞环被卡住时应怎么处理？",
+      "expected_pages": [
+        18
+      ],
+      "retrieved_pages": [
+        [
+          18,
+          18
+        ],
+        [
+          21,
+          22
+        ],
+        [
+          20,
+          21
+        ],
+        [
+          19,
+          19
+        ],
+        [
+          21,
+          21
+        ]
+      ],
+      "hit_at_1": true,
+      "hit_at_3": true,
+      "hit_at_5": true
+    },
+    {
+      "id": "Q016",
+      "question": "A组活塞能否安装到B组气缸中？",
+      "expected_pages": [
+        20
+      ],
+      "retrieved_pages": [
+        [
+          20,
+          21
+        ],
+        [
+          19,
+          19
+        ],
+        [
+          21,
+          22
+        ],
+        [
+          17,
+          18
+        ],
+        [
+          18,
+          18
+        ]
+      ],
+      "hit_at_1": true,
+      "hit_at_3": true,
+      "hit_at_5": true
+    },
+    {
+      "id": "Q017",
+      "question": "活塞环开口应该如何错开？",
+      "expected_pages": [
+        21
+      ],
+      "retrieved_pages": [
+        [
+          21,
+          22
+        ],
+        [
+          20,
+          21
+        ],
+        [
+          21,
+          21
+        ],
+        [
+          18,
+          18
+        ],
+        [
+          18,
+          18
+        ]
+      ],
+      "hit_at_1": true,
+      "hit_at_3": true,
+      "hit_at_5": true
+    },
+    {
+      "id": "Q018",
+      "question": "第一道和第二道气环的标记面应该朝哪个方向？",
+      "expected_pages": [
+        21,
+        22
+      ],
+      "retrieved_pages": [
+        [
+          21,
+          22
+        ],
+        [
+          21,
+          21
+        ],
+        [
+          15,
+          15
+        ],
+        [
+          19,
+          19
+        ],
+        [
+          16,
+          17
+        ]
+      ],
+      "hit_at_1": true,
+      "hit_at_3": true,
+      "hit_at_5": true
+    },
+    {
+      "id": "Q019",
+      "question": "拆下右曲轴箱盖前为什么要倾倒放置发动机？",
+      "expected_pages": [
+        25
+      ],
+      "retrieved_pages": [
+        [
+          25,
+          25
+        ],
+        [
+          6,
+          8
+        ],
+        [
+          8,
+          8
+        ],
+        [
+          35,
+          36
+        ],
+        [
+          32,
+          33
+        ]
+      ],
+      "hit_at_1": true,
+      "hit_at_3": true,
+      "hit_at_5": true
+    },
+    {
+      "id": "Q020",
+      "question": "离合器摩擦片发黑或从动片不平整时应怎样处理？",
+      "expected_pages": [
+        27
+      ],
+      "retrieved_pages": [
+        [
+          27,
+          27
+        ],
+        [
+          27,
+          27
+        ],
+        [
+          31,
+          31
+        ],
+        [
+          23,
+          24
+        ],
+        [
+          25,
+          25
+        ]
+      ],
+      "hit_at_1": true,
+      "hit_at_3": true,
+      "hit_at_5": true
+    },
+    {
+      "id": "Q021",
+      "question": "怎样判断机油泵是否需要更换？",
+      "expected_pages": [
+        28
+      ],
+      "retrieved_pages": [
+        [
+          28,
+          28
+        ],
+        [
+          28,
+          28
+        ],
+        [
+          28,
+          28
+        ],
+        [
+          8,
+          8
+        ],
+        [
+          18,
+          18
+        ]
+      ],
+      "hit_at_1": true,
+      "hit_at_3": true,
+      "hit_at_5": true
+    },
+    {
+      "id": "Q022",
+      "question": "安装水泵时水封动环方向和规定扭矩是什么？",
+      "expected_pages": [
+        29
+      ],
+      "retrieved_pages": [
+        [
+          29,
+          29
+        ],
+        [
+          8,
+          8
+        ],
+        [
+          29,
+          29
+        ],
+        [
+          28,
+          28
+        ],
+        [
+          25,
+          25
+        ]
+      ],
+      "hit_at_1": true,
+      "hit_at_3": true,
+      "hit_at_5": true
+    },
+    {
+      "id": "Q023",
+      "question": "如何检查磁电机转子离合器单向器是否正常？",
+      "expected_pages": [
+        31
+      ],
+      "retrieved_pages": [
+        [
+          31,
+          31
+        ],
+        [
+          31,
+          31
+        ],
+        [
+          31,
+          32
+        ],
+        [
+          29,
+          30
+        ],
+        [
+          27,
+          27
+        ]
+      ],
+      "hit_at_1": true,
+      "hit_at_3": true,
+      "hit_at_5": true
+    },
+    {
+      "id": "Q024",
+      "question": "发现拨叉轴弯曲后能否将其校直继续使用？",
+      "expected_pages": [
+        37
+      ],
+      "retrieved_pages": [
+        [
+          36,
+          37
+        ],
+        [
+          37,
+          38
+        ],
+        [
+          26,
+          27
+        ],
+        [
+          39,
+          39
+        ],
+        [
+          40,
+          41
+        ]
+      ],
+      "hit_at_1": true,
+      "hit_at_3": true,
+      "hit_at_5": true
+    },
+    {
+      "id": "Q025",
+      "question": "传动装置中的L、C、R拨叉标记分别代表什么？",
+      "expected_pages": [
+        38
+      ],
+      "retrieved_pages": [
+        [
+          37,
+          38
+        ],
+        [
+          36,
+          37
+        ],
+        [
+          35,
+          36
+        ],
+        [
+          33,
+          34
+        ],
+        [
+          40,
+          41
+        ]
+      ],
+      "hit_at_1": true,
+      "hit_at_3": true,
+      "hit_at_5": true
+    },
+    {
+      "id": "Q026",
+      "question": "曲轴轴向跳动、连杆大头轴向间隙和曲柄销径向间隙的技术要求是什么？",
+      "expected_pages": [
+        39,
+        40
+      ],
+      "retrieved_pages": [
+        [
+          39,
+          40
+        ],
+        [
+          40,
+          41
+        ],
+        [
+          39,
+          39
+        ],
+        [
+          14,
+          15
+        ],
+        [
+          15,
+          15
+        ]
+      ],
+      "hit_at_1": true,
+      "hit_at_3": true,
+      "hit_at_5": true
+    }
+  ]
+}

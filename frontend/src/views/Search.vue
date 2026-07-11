@@ -47,6 +47,23 @@
           <div class="msg-bubble">
             <div v-if="msg.role === 'assistant'" class="msg-content structured" v-html="formatAnswer(msg.content)"></div>
             <div v-else class="msg-content">{{ msg.content }}</div>
+            <div v-if="msg.role === 'assistant' && msg.citations && msg.citations.length" class="citation-list">
+              <div class="citation-title">参考来源</div>
+              <a
+                v-for="source in msg.citations"
+                :key="source.id"
+                class="citation-card"
+                :href="source.file_url"
+                target="_blank"
+                rel="noopener"
+              >
+                <span class="citation-id">[{{ source.id }}]</span>
+                <span class="citation-main">
+                  <strong>《{{ source.document_title }}》</strong>
+                  <small>第 {{ source.page_label }} 页 · {{ source.section_title || '未识别章节' }}</small>
+                </span>
+              </a>
+            </div>
             <div class="msg-time">{{ formatMsgTime(msg.time) }}</div>
           </div>
         </div>
@@ -96,10 +113,10 @@ export default {
       loading: false,
       savedSessions: [],
       examples: [
-        '离心泵运行时轴承温度超过 80°C，伴随异常振动',
-        '电机启动困难，且运行电流明显偏高',
-        '减速箱齿轮磨损严重，有异响',
-        '输送带运行时持续跑偏，物料洒落'
+        '火花塞电极间隙的标准范围是多少？',
+        '气缸压缩压力低于标准值时如何进一步判断？',
+        '进气门和排气门的标准间隙分别是多少？',
+        '安装水泵时水封动环方向和扭矩是什么？'
       ]
     }
   },
@@ -137,33 +154,41 @@ export default {
 
       try {
         const token = localStorage.getItem('equipai_token') || ''
-        const res = await fetch('/api/ai/ask', {
+        const res = await fetch('/api/rag/ask', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-          body: JSON.stringify({ text })
+          body: JSON.stringify({ question: text, top_k: 5 })
         })
         const data = await res.json()
 
-        if (data.code === 200) {
-          this.messages.push({ role: 'assistant', content: data.data, time: Date.now() })
+        if (res.ok) {
+          this.messages.push({
+            role: 'assistant',
+            content: data.answer,
+            citations: data.citations || [],
+            answerable: data.answerable,
+            time: Date.now()
+          })
         } else {
-          this.messages.push({ role: 'assistant', content: '❌ 请求失败：' + (data.msg || '未知错误'), time: Date.now() })
+          const detail = typeof data.detail === 'string' ? data.detail : '未知错误'
+          this.messages.push({ role: 'assistant', content: '❌ 请求失败：' + detail, time: Date.now() })
         }
       } catch (err) {
-        const demoAnswer = this.generateDemoAnswer(text)
-        this.messages.push({ role: 'assistant', content: demoAnswer, time: Date.now(), demo: true })
+        this.messages.push({ role: 'assistant', content: '❌ 无法连接知识库服务，请确认后端正在运行。', time: Date.now() })
       } finally {
         this.loading = false
         this.saveCurrentSession()
         this.$nextTick(() => this.scrollToBottom())
       }
     },
-    generateDemoAnswer(text) {
-      return `【故障初步诊断】\n根据您描述的现象："${text}"，初步判断可能存在以下问题：\n\n【可能原因】\n1. 机械磨损：运动部件长期运行产生疲劳、间隙增大\n2. 润滑失效：润滑油变质或不足，导致摩擦热累积\n3. 安装偏差：同轴度或水平度超出允许范围\n\n【建议检查项】\n- 检查润滑系统状态，确认油位和油质\n- 测量关键部位温度和振动值\n- 检查紧固件扭矩，确认无松动\n- 运行状态下监听异常噪音部位\n\n【处置建议】\n建议立即降低负载运行，安排计划停机检修。如需详细作业步骤，请前往「作业指导」页面查询标准SOP。`
-    },
     formatAnswer(text) {
       if (!text) return ''
       let html = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;')
         .replace(/【(.*?)】/g, '<div class="tag">[$1]</div>')
         .replace(/\n\s*\n/g, '</p><p>')
         .replace(/\n([0-9]+)\.\s*/g, '<br><span class="num">$1.</span> ')
@@ -266,6 +291,51 @@ export default {
 .btn-xs {
   padding: 5px 12px;
   font-size: 0.75rem;
+}
+
+.citation-list {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+}
+
+.citation-title {
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.citation-card {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 8px 10px;
+  color: inherit;
+  text-decoration: none;
+  background: rgba(37, 99, 235, 0.06);
+  border: 1px solid rgba(37, 99, 235, 0.16);
+  border-radius: 8px;
+}
+
+.citation-card:hover {
+  border-color: var(--primary-color);
+}
+
+.citation-id {
+  color: var(--primary-color);
+  font-weight: 700;
+}
+
+.citation-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.citation-main small {
+  margin-top: 2px;
+  color: var(--text-muted);
 }
 
 /* 对话区 */

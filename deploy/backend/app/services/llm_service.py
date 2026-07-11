@@ -37,7 +37,7 @@ class LLMService:
                 base = base + "/v1"
             self.base_url = base
             self.api_key = settings.LONGCAT_API_KEY or ""
-            self.model = settings.LONGCAT_MODEL or "longcat-2.0"
+            self.model = settings.LONGCAT_MODEL or "LongCat-2.0"
 
         # SDK 通道初始化
         self._sdk_client = None

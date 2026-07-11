@@ -63,7 +63,8 @@ def _parse_json_list(raw: Any) -> List[str]:
 class Settings(BaseSettings):
     # 运行环境
     ENVIRONMENT: str = "production"
-    DEBUG: bool = False
+    # 避免与开发工具常见的系统环境变量 DEBUG=release 等发生冲突。
+    APP_DEBUG: bool = False
 
     # API 服务
     API_HOST: str = "0.0.0.0"
@@ -84,7 +85,7 @@ class Settings(BaseSettings):
     # LongCat 云端
     LONGCAT_API_KEY: str = ""
     LONGCAT_API_URL: str = "https://api.longcat.chat/openai"
-    LONGCAT_MODEL: str = "longcat-2.0"
+    LONGCAT_MODEL: str = "LongCat-2.0"
 
     # Ollama 本地
     OLLAMA_API_URL: str = "http://localhost:11434/v1"
@@ -124,7 +125,7 @@ def _fallback_settings() -> Settings:
         load_dotenv(_ENV_FILE, override=False)
     s = Settings()
     for fld in [
-        "ENVIRONMENT", "DEBUG", "API_HOST", "API_PORT",
+        "ENVIRONMENT", "APP_DEBUG", "API_HOST", "API_PORT",
         "SECRET_KEY", "ACCESS_TOKEN_EXPIRE_HOURS", "CORS_ORIGINS",
         "LLM_BACKEND", "LLM_TEMPERATURE", "LLM_TIMEOUT",
         "LONGCAT_API_KEY", "LONGCAT_API_URL", "LONGCAT_MODEL",

@@ -6,4 +6,7 @@ node_modules/
 dist/
 data/raw/
 data/uploads/
+data/*.db
+data/*.db-shm
+data/*.db-wal
 tmp/

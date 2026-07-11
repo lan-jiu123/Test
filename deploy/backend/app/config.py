@@ -84,7 +84,7 @@ class Settings(BaseSettings):
     # LongCat 云端
     LONGCAT_API_KEY: str = ""
     LONGCAT_API_URL: str = "https://api.longcat.chat/openai"
-    LONGCAT_MODEL: str = "longcat-2.0"
+    LONGCAT_MODEL: str = "LongCat-2.0"
 
     # Ollama 本地
     OLLAMA_API_URL: str = "http://localhost:11434/v1"

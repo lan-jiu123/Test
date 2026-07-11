@@ -33,6 +33,21 @@ else:
 
 app = FastAPI()
 
+from .database import database_health, init_database
+from .routers.documents import router as documents_router
+from .routers.search import router as search_router
+from .routers.rag import router as rag_router
+
+
+@app.on_event("startup")
+def startup_database():
+    init_database()
+
+
+app.include_router(documents_router)
+app.include_router(search_router)
+app.include_router(rag_router)
+
 # CORS 从环境变量读取
 cors_origins = os.getenv("CORS_ORIGINS", '["http://localhost:8000"]')
 app.add_middleware(
@@ -54,7 +69,7 @@ def _build_llm_ctx():
     else:
         base_url = os.getenv("LONGCAT_API_URL", "https://api.longcat.chat/openai/v1")
         api_key = os.getenv("LONGCAT_API_KEY", "")
-        model = os.getenv("LONGCAT_MODEL", "longcat-2.0")
+        model = os.getenv("LONGCAT_MODEL", "LongCat-2.0")
     temperature = float(os.getenv("LLM_TEMPERATURE", "0.3"))
     return base_url, api_key, model, temperature
 
@@ -89,7 +104,8 @@ def health():
 @app.get("/health/ready")
 def readiness():
     """就绪检查：验证 LLM 后端可达"""
-    checks = {"api": True, "llm": False}
+    db_check = database_health()
+    checks = {"api": True, "database": db_check["ok"], "llm": False}
     try:
         if LLM_BACKEND == "ollama":
             base = os.getenv("OLLAMA_API_URL", "http://localhost:11434/v1").replace("/v1", "")
@@ -101,7 +117,11 @@ def readiness():
     except Exception:
         pass
     all_ready = all(checks.values())
-    return {"status": "ready" if all_ready else "not_ready", "checks": checks}
+    return {
+        "status": "ready" if all_ready else "not_ready",
+        "checks": checks,
+        "database": db_check,
+    }
 
 
 def _llm_chat_request(prompt: str, user_text: str):
