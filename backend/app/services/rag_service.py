@@ -57,13 +57,19 @@ def _citation_from_result(item: dict, evidence_id: str) -> dict:
     }
 
 
-def _insufficient(search_result: dict) -> tuple[bool, str | None]:
+def _insufficient(
+    search_result: dict,
+    min_lexical_coverage: float = MIN_LEXICAL_COVERAGE,
+    min_matched_terms: int = 0,
+) -> tuple[bool, str | None]:
     if not search_result["items"]:
         return True, "知识库中没有可用的检修资料"
     diagnostics = search_result.get("diagnostics") or {}
     if diagnostics.get("missing_codes"):
         return True, "问题中的型号或故障码未在知识库证据中出现"
-    if diagnostics.get("lexical_coverage", 0.0) < MIN_LEXICAL_COVERAGE:
+    if diagnostics.get("matched_term_count", 0) < min_matched_terms:
+        return True, "检索证据命中的关键术语数量不足"
+    if diagnostics.get("lexical_coverage", 0.0) < min_lexical_coverage:
         return True, "检索证据与问题的关键术语匹配度不足"
     return False, None
 
@@ -108,6 +114,8 @@ def answer_question(
     device_model: str | None = None,
     top_k: int = 5,
     llm_service=None,
+    min_lexical_coverage: float = MIN_LEXICAL_COVERAGE,
+    min_matched_terms: int = 0,
 ) -> dict:
     search_result = hybrid_search(
         question,
@@ -115,7 +123,9 @@ def answer_question(
         device_model=device_model,
         top_k=top_k,
     )
-    insufficient, reason = _insufficient(search_result)
+    insufficient, reason = _insufficient(
+        search_result, min_lexical_coverage, min_matched_terms
+    )
     if insufficient:
         return {
             "answerable": False,

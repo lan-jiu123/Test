@@ -87,6 +87,16 @@ class Settings(BaseSettings):
     LONGCAT_API_URL: str = "https://api.longcat.chat/openai"
     LONGCAT_MODEL: str = "LongCat-2.0"
 
+    # 阿里云百炼 / 通义千问（OpenAI 兼容接口）
+    # 文本模型未配置时继续兼容现有 LONGCAT_* 配置。
+    QWEN_API_KEY: str = ""
+    QWEN_API_URL: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    # QWEN_MODEL 保留对早期配置的兼容；新配置建议使用 QWEN_TEXT_MODEL。
+    QWEN_MODEL: str = ""
+    QWEN_TEXT_MODEL: str = ""
+    QWEN_VISION_MODEL: str = "qwen3-vl-plus"
+    MAX_IMAGE_UPLOAD_MB: int = 10
+
     # Ollama 本地
     OLLAMA_API_URL: str = "http://localhost:11434/v1"
     OLLAMA_MODEL: str = "qwen2.5:7b"
@@ -105,7 +115,7 @@ class Settings(BaseSettings):
         return self.machine_arch.lower().startswith("loongarch")
 
     if field_validator:
-        @field_validator("LONGCAT_API_URL", "OLLAMA_API_URL")
+        @field_validator("LONGCAT_API_URL", "OLLAMA_API_URL", "QWEN_API_URL")
         @classmethod
         def _norm_url(cls, v: str) -> str:
             v = (v or "").strip()
@@ -129,6 +139,8 @@ def _fallback_settings() -> Settings:
         "SECRET_KEY", "ACCESS_TOKEN_EXPIRE_HOURS", "CORS_ORIGINS",
         "LLM_BACKEND", "LLM_TEMPERATURE", "LLM_TIMEOUT",
         "LONGCAT_API_KEY", "LONGCAT_API_URL", "LONGCAT_MODEL",
+        "QWEN_API_KEY", "QWEN_API_URL", "QWEN_MODEL", "QWEN_TEXT_MODEL", "QWEN_VISION_MODEL",
+        "MAX_IMAGE_UPLOAD_MB",
         "OLLAMA_API_URL", "OLLAMA_MODEL",
     ]:
         env_v = os.getenv(fld)

@@ -81,6 +81,27 @@
 
       <!-- 输入区 -->
       <form class="input-area" @submit.prevent="askAI">
+        <div class="image-upload-row">
+          <label class="btn btn-outline btn-xs image-picker">
+            选择故障图片
+            <input
+              ref="imageInput"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              :disabled="loading"
+              @change="selectImage"
+            />
+          </label>
+          <span class="image-hint">支持 JPG / PNG / WebP，发送前自动压缩</span>
+        </div>
+        <div v-if="imagePreview" class="image-preview-card">
+          <img :src="imagePreview" alt="待诊断图片预览" />
+          <div class="image-preview-info">
+            <strong>{{ imageFile && imageFile.name }}</strong>
+            <small>{{ formatFileSize(imageFile && imageFile.size) }}</small>
+            <button type="button" class="remove-image" @click="clearImage" :disabled="loading">移除</button>
+          </div>
+        </div>
         <textarea
           v-model="question"
           class="input search-input"
@@ -91,8 +112,8 @@
         />
         <div class="input-actions">
           <div class="input-tip">{{ question.length }} / 500</div>
-          <button type="submit" class="btn btn-primary send-btn" :disabled="loading || !question.trim()">
-            发送 ↑
+          <button type="submit" class="btn btn-primary send-btn" :disabled="loading || (!question.trim() && !imageFile)">
+            {{ imageFile ? '图片诊断 ↑' : '发送 ↑' }}
           </button>
         </div>
       </form>
@@ -111,6 +132,8 @@ export default {
       question: '',
       messages: [],
       loading: false,
+      imageFile: null,
+      imagePreview: '',
       savedSessions: [],
       examples: [
         '火花塞电极间隙的标准范围是多少？',
@@ -144,8 +167,13 @@ export default {
     },
     async askAI() {
       const text = this.question.trim()
-      if (!text || this.loading) return
+      if ((!text && !this.imageFile) || this.loading) return
       if (text.length > 500) return
+
+      if (this.imageFile) {
+        await this.diagnoseImage(text)
+        return
+      }
 
       this.messages.push({ role: 'user', content: text, time: Date.now() })
       this.question = ''
@@ -180,6 +208,115 @@ export default {
         this.saveCurrentSession()
         this.$nextTick(() => this.scrollToBottom())
       }
+    },
+    async selectImage(event) {
+      const file = event.target.files && event.target.files[0]
+      if (!file) return
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+        alert('仅支持 JPG、PNG 或 WebP 图片')
+        this.clearImage()
+        return
+      }
+      try {
+        const compressed = await this.compressImage(file)
+        if (this.imagePreview) URL.revokeObjectURL(this.imagePreview)
+        this.imageFile = compressed
+        this.imagePreview = URL.createObjectURL(compressed)
+      } catch (e) {
+        alert('图片读取或压缩失败，请更换图片重试')
+        this.clearImage()
+      }
+    },
+    compressImage(file) {
+      if (file.type === 'image/webp' && file.size <= 2 * 1024 * 1024) return Promise.resolve(file)
+      return new Promise((resolve, reject) => {
+        const img = new Image()
+        const url = URL.createObjectURL(file)
+        img.onload = () => {
+          const maxSide = 1600
+          const scale = Math.min(1, maxSide / Math.max(img.width, img.height))
+          const canvas = document.createElement('canvas')
+          canvas.width = Math.max(1, Math.round(img.width * scale))
+          canvas.height = Math.max(1, Math.round(img.height * scale))
+          const ctx = canvas.getContext('2d')
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+          URL.revokeObjectURL(url)
+          canvas.toBlob(blob => {
+            if (!blob) return reject(new Error('canvas export failed'))
+            const name = file.name.replace(/\.[^.]+$/, '') + '.jpg'
+            resolve(new File([blob], name, { type: 'image/jpeg', lastModified: Date.now() }))
+          }, 'image/jpeg', 0.82)
+        }
+        img.onerror = () => {
+          URL.revokeObjectURL(url)
+          reject(new Error('image load failed'))
+        }
+        img.src = url
+      })
+    },
+    async diagnoseImage(note) {
+      const file = this.imageFile
+      const preview = this.imagePreview
+      this.messages.push({
+        role: 'user',
+        content: note || '请识别这张故障图片并检索相关维修资料。',
+        image: preview,
+        time: Date.now()
+      })
+      this.question = ''
+      this.loading = true
+      this.$nextTick(() => this.scrollToBottom())
+      try {
+        const form = new FormData()
+        form.append('file', file, file.name)
+        form.append('note', note)
+        form.append('top_k', '5')
+        const token = localStorage.getItem('equipai_token') || ''
+        const res = await fetch('/api/images/diagnose', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token },
+          body: form
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(typeof data.detail === 'string' ? data.detail : '图片诊断失败')
+        const vision = data.vision_analysis || {}
+        const rag = data.diagnosis || {}
+        const facts = (vision.visible_facts || []).join('；') || '未识别到明确可见异常'
+        const ocr = (vision.ocr_text || []).join('；') || '未识别到文字或型号'
+        const faults = (vision.suspected_faults || []).join('；') || '暂无可靠故障推测'
+        const visionText = `【图片识别】\n设备：${vision.equipment || '无法确定'}\n部件：${vision.component || '无法确定'}\n可见事实：${facts}\nOCR：${ocr}\n疑似故障：${faults}\n置信度：${Math.round((vision.confidence || 0) * 100)}%\n人工复核：${vision.review_reason || '建议由专业人员复核'}`
+        const retrieval = rag.retrieval || {}
+        const coverage = typeof retrieval.lexical_coverage === 'number'
+          ? `${Math.round(retrieval.lexical_coverage * 100)}%`
+          : '未知'
+        const retrievalText = `【检索过程】\n检索关键词：${data.retrieval_query || '未生成'}\n证据关键词覆盖率：${coverage}`
+        const ragText = rag.answer || '现有知识库证据不足，未生成检修步骤。'
+        this.messages.push({
+          role: 'assistant',
+          content: visionText + '\n\n' + retrievalText + '\n\n' + ragText,
+          citations: rag.citations || [],
+          answerable: rag.answerable,
+          vision: vision,
+          time: Date.now()
+        })
+        this.clearImage()
+      } catch (err) {
+        this.messages.push({ role: 'assistant', content: '❌ 图片诊断失败：' + err.message, time: Date.now() })
+      } finally {
+        this.loading = false
+        this.saveCurrentSession()
+        this.$nextTick(() => this.scrollToBottom())
+      }
+    },
+    clearImage() {
+      if (this.imagePreview) URL.revokeObjectURL(this.imagePreview)
+      this.imageFile = null
+      this.imagePreview = ''
+      if (this.$refs.imageInput) this.$refs.imageInput.value = ''
+    },
+    formatFileSize(size) {
+      if (!size) return ''
+      return size < 1024 * 1024 ? `${Math.round(size / 1024)} KB` : `${(size / 1024 / 1024).toFixed(1)} MB`
     },
     formatAnswer(text) {
       if (!text) return ''
@@ -513,6 +650,65 @@ export default {
   gap: 10px;
   padding-top: 18px;
   border-top: 1px solid var(--border-subtle);
+}
+
+.image-upload-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.image-picker input {
+  display: none;
+}
+
+.image-hint {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.image-preview-card {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--border-active);
+  border-radius: var(--radius);
+  background: var(--primary-subtle);
+}
+
+.image-preview-card img {
+  width: 92px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.image-preview-info {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.image-preview-info strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.image-preview-info small {
+  color: var(--text-muted);
+}
+
+.remove-image {
+  align-self: flex-start;
+  padding: 0;
+  color: #ef4444;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
 }
 
 .search-input {

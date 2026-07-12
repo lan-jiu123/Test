@@ -20,7 +20,16 @@ from ..services.document_parser import parse_document
 router = APIRouter(prefix="/api/documents", tags=["知识库文档"])
 
 MAX_UPLOAD_BYTES = int(os.getenv("MAX_DOCUMENT_UPLOAD_MB", "100")) * 1024 * 1024
-ALLOWED_CONTENT_TYPES = {"application/pdf", "application/octet-stream"}
+ALLOWED_EXTENSIONS = {
+    ".pdf": "application/pdf",
+    ".md": "text/markdown",
+    ".markdown": "text/markdown",
+    ".txt": "text/plain",
+}
+ALLOWED_CONTENT_TYPES = {
+    "application/pdf", "application/octet-stream", "text/plain", "text/markdown",
+    "text/x-markdown",
+}
 READ_CHUNK_SIZE = 1024 * 1024
 
 
@@ -68,9 +77,21 @@ def _validate_pdf(path: Path) -> int:
         raise ValueError("PDF 文件损坏或无法解析") from exc
 
 
+def _validate_document(path: Path, suffix: str) -> int:
+    if suffix == ".pdf":
+        return _validate_pdf(path)
+    try:
+        text = path.read_text(encoding="utf-8-sig")
+    except UnicodeDecodeError as exc:
+        raise ValueError("TXT/Markdown 文件必须使用 UTF-8 编码") from exc
+    if not text.strip():
+        raise ValueError("文本文件没有可用内容")
+    return 1
+
+
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def upload_document(
-    file: UploadFile = File(..., description="仅支持 PDF 文件"),
+    file: UploadFile = File(..., description="支持 PDF、Markdown 和 TXT 文件"),
     title: str | None = Form(default=None),
     device_type: str | None = Form(default=None),
     device_model: str | None = Form(default=None),
@@ -78,17 +99,18 @@ async def upload_document(
     maintenance_level: str | None = Form(default=None),
     uploaded_by: str | None = Form(default=None),
 ):
-    """流式保存 PDF，校验文件并用 SHA-256 去重。"""
+    """流式保存文档，校验文件并用 SHA-256 去重。"""
     init_database()
     original_filename = Path(file.filename or "").name
-    if not original_filename or Path(original_filename).suffix.lower() != ".pdf":
-        raise HTTPException(status_code=415, detail="仅支持 .pdf 文件")
+    suffix = Path(original_filename).suffix.lower()
+    if not original_filename or suffix not in ALLOWED_EXTENSIONS:
+        raise HTTPException(status_code=415, detail="仅支持 PDF、Markdown 和 TXT 文件")
     if file.content_type and file.content_type.lower() not in ALLOWED_CONTENT_TYPES:
-        raise HTTPException(status_code=415, detail="文件 MIME 类型不是 PDF")
+        raise HTTPException(status_code=415, detail="不支持该文件 MIME 类型")
 
     document_id = uuid.uuid4().hex
     temp_path = UPLOAD_DIR / f".{document_id}.part"
-    stored_filename = f"{document_id}.pdf"
+    stored_filename = f"{document_id}{suffix}"
     final_path = UPLOAD_DIR / stored_filename
     digest = hashlib.sha256()
     size_bytes = 0
@@ -111,7 +133,7 @@ async def upload_document(
         if size_bytes == 0:
             raise HTTPException(status_code=400, detail="上传文件为空")
         try:
-            page_count = _validate_pdf(temp_path)
+            page_count = _validate_document(temp_path, suffix)
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
@@ -139,14 +161,15 @@ async def upload_document(
                     mime_type, size_bytes, sha256, page_count, device_type,
                     device_model, document_category, maintenance_level, status,
                     uploaded_by, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, 'pdf', ?, ?, ?, ?, ?, ?, ?, ?, 'uploaded', ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'uploaded', ?, ?, ?)
                 """,
                 (
                     document_id,
                     _clean_optional(title) or Path(original_filename).stem,
                     original_filename,
                     stored_filename,
-                    file.content_type or "application/pdf",
+                    suffix.lstrip("."),
+                    file.content_type or ALLOWED_EXTENSIONS[suffix],
                     size_bytes,
                     sha256,
                     page_count,
@@ -241,7 +264,7 @@ def get_document_status(document_id: str):
 
 @router.post("/{document_id}/parse")
 def parse_uploaded_document(document_id: str):
-    """解析 PDF，保存逐页文本并生成带章节与页码的知识块。"""
+    """解析文档，保存文本并生成带章节与页码的知识块。"""
     init_database()
     row = _get_document_or_404(document_id)
     path = UPLOAD_DIR / row["stored_filename"]
@@ -255,7 +278,7 @@ def parse_uploaded_document(document_id: str):
             device_model=row["device_model"],
         )
     except Exception as exc:
-        raise HTTPException(status_code=422, detail=f"PDF 解析失败：{exc}") from exc
+        raise HTTPException(status_code=422, detail=f"文档解析失败：{exc}") from exc
 
 
 @router.post("/{document_id}/reparse")
@@ -333,7 +356,7 @@ def download_document(document_id: str):
         raise HTTPException(status_code=404, detail="文档文件不存在")
     return FileResponse(
         path,
-        media_type="application/pdf",
+        media_type=row["mime_type"],
         filename=row["original_filename"],
     )
 

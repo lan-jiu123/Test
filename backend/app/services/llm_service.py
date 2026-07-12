@@ -43,6 +43,11 @@ class LLMService:
             self.base_url = (settings.OLLAMA_API_URL or "http://localhost:11434/v1").rstrip("/")
             self.api_key = "ollama"
             self.model = settings.OLLAMA_MODEL or "qwen2.5:7b"
+        elif settings.QWEN_API_KEY or self.backend == "qwen":
+            self.backend = "qwen"
+            self.base_url = (settings.QWEN_API_URL or "https://dashscope.aliyuncs.com/compatible-mode/v1").rstrip("/")
+            self.api_key = settings.QWEN_API_KEY or ""
+            self.model = settings.QWEN_TEXT_MODEL or settings.QWEN_MODEL or "qwen-plus"
         else:
             base = (settings.LONGCAT_API_URL or "https://api.longcat.chat/openai").rstrip("/")
             if not base.endswith("/v1"):

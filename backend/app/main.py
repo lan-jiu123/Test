@@ -37,6 +37,7 @@ from .database import database_health, init_database
 from .routers.documents import router as documents_router
 from .routers.search import router as search_router
 from .routers.rag import router as rag_router
+from .routers.images import router as images_router
 
 
 @app.on_event("startup")
@@ -47,6 +48,7 @@ def startup_database():
 app.include_router(documents_router)
 app.include_router(search_router)
 app.include_router(rag_router)
+app.include_router(images_router)
 
 # CORS 从环境变量读取
 cors_origins = os.getenv("CORS_ORIGINS", '["http://localhost:8000"]')
@@ -66,6 +68,10 @@ def _build_llm_ctx():
         base_url = os.getenv("OLLAMA_API_URL", "http://localhost:11434/v1")
         api_key = "ollama"
         model = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
+    elif os.getenv("QWEN_API_KEY") or LLM_BACKEND == "qwen":
+        base_url = os.getenv("QWEN_API_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1")
+        api_key = os.getenv("QWEN_API_KEY", "")
+        model = os.getenv("QWEN_TEXT_MODEL") or os.getenv("QWEN_MODEL", "qwen-plus")
     else:
         base_url = os.getenv("LONGCAT_API_URL", "https://api.longcat.chat/openai/v1")
         api_key = os.getenv("LONGCAT_API_KEY", "")
@@ -112,8 +118,7 @@ def readiness():
             resp = requests.get(f"{base}/api/tags", timeout=5)
             checks["llm"] = resp.status_code == 200
         else:
-            # LongCat: 有 key 即认为可达
-            checks["llm"] = bool(os.getenv("LONGCAT_API_KEY"))
+            checks["llm"] = bool(os.getenv("QWEN_API_KEY") or os.getenv("LONGCAT_API_KEY"))
     except Exception:
         pass
     all_ready = all(checks.values())

@@ -18,6 +18,7 @@ FOOTER_RE = re.compile(r"^No\.\s*\d+\s*/\s*\d+\s*$", re.IGNORECASE)
 MAJOR_SECTION_RE = re.compile(r"^[一二三四五六七八九十]+、\s*\S+")
 NUMBERED_SECTION_RE = re.compile(r"^\d+(?:\.\d+)+\s+\S+")
 ACTION_SECTION_RE = re.compile(r"^(拆卸|安装|检查|测量|调整)[^，。；：、,]{1,16}$")
+MARKDOWN_HEADING_RE = re.compile(r"^#{1,6}\s+\S+")
 SAFETY_RE = re.compile(r"(警告|警示|危险|严禁|不得|注意)")
 WHITESPACE_RE = re.compile(r"[ \t\u3000]+")
 
@@ -66,6 +67,7 @@ def _is_section_heading(line: str) -> bool:
         MAJOR_SECTION_RE.match(value)
         or NUMBERED_SECTION_RE.match(value)
         or ACTION_SECTION_RE.match(value)
+        or MARKDOWN_HEADING_RE.match(value)
         or value == "注意事项"
     )
 
@@ -99,6 +101,23 @@ def extract_pdf_pages(pdf_path: Path) -> list[ParsedPage]:
             )
         )
     return pages
+
+
+def extract_text_pages(text_path: Path) -> list[ParsedPage]:
+    try:
+        content = text_path.read_text(encoding="utf-8-sig")
+    except UnicodeDecodeError as exc:
+        raise ValueError("文本文件必须使用 UTF-8 编码") from exc
+    cleaned = content.replace("\r\n", "\n").replace("\r", "\n").strip()
+    return [ParsedPage(page_number=1, content=cleaned, is_toc=False)]
+
+
+def extract_document_pages(path: Path) -> list[ParsedPage]:
+    if path.suffix.lower() == ".pdf":
+        return extract_pdf_pages(path)
+    if path.suffix.lower() in {".md", ".markdown", ".txt"}:
+        return extract_text_pages(path)
+    raise ValueError("暂不支持该文档格式")
 
 
 def _emit_section_chunks(
@@ -177,7 +196,17 @@ def build_chunks(
                 continue
             if _is_section_heading(value):
                 flush()
-                if MAJOR_SECTION_RE.match(value):
+                if MARKDOWN_HEADING_RE.match(value):
+                    level = len(value) - len(value.lstrip("#"))
+                    heading = value[level:].strip()
+                    if level <= 2:
+                        major_section = heading
+                        numbered_section = None
+                        current_section = heading
+                    else:
+                        parent = major_section
+                        current_section = f"{parent} > {heading}" if parent else heading
+                elif MAJOR_SECTION_RE.match(value):
                     major_section = value
                     numbered_section = None
                     current_section = value
@@ -206,7 +235,7 @@ def parse_document(
         )
 
     try:
-        pages = extract_pdf_pages(pdf_path)
+        pages = extract_document_pages(pdf_path)
         chunks = build_chunks(pages)
         if not any(page.content for page in pages):
             raise ValueError("PDF 没有提取到文本，可能需要 OCR")
